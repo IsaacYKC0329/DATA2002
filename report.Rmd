@@ -14,12 +14,12 @@ output:
 
 # Introduction
 
-### Is this a random sample of DATA2x02 students?
+## Is this a random sample of DATA2x02 students?
 
   I consider this data is not a random sample of DATA2x02 students. The definition of random sample is "A simple random sample is a subset of a statistical population in which each member of the subset has an equal probability of being chosen. A simple random sample is meant to be an unbiased representation of a group.", base on the definition, the data is not a random sample. The data from survey was completed by the student from DATA2002 and DATA2902, and the survey was posted on ED, which will occur bias in the data because most of the student will not look through the post on ed, and they were not active on the live lecture, so they wouldn't know there was a survey that post on ED, so the survey was not completed by all the students who takes DATA2x02.As a result, this is not a random sample.
   
   
-### What are the potential biases? Which variables are most likely to be subjected to this bias?
+## What are the potential biases? Which variables are most likely to be subjected to this bias?
 
   The possible biased are: 
   -   Non-response bias and sample bias, which trigger by those students who never attend the lecture and never check the post on ED; 
@@ -28,28 +28,46 @@ output:
   -   Question order bias: the question in the order is messed up. Students will remember how they answer for each question, and they want to response all the questions in a consistent way. With a survey with no order, people who are taking the survey will get tired and they may quit the survey or answer the question that doesn't follow their heart.
   
   
-### Which questions needed improvement to generate useful data
-  The most obvious one is the question that ask about the height and the shoes size. Students who took the survey will have different answer with different unit. For the question of height, some students will use centimeter, some will use meter, some will use feet. For the question of shoes size, some may use EU unit like 40, 42, some may use US or AUS unit like 8, 8.5, 7.5. In this case, this will occur bias in the data. So, the questioner should set the unit of these kind of questions. Furthermore, on the question "what you watch or listen on the way to school", there should be more options for international students. Like the students from China, they may watch TitTok, or the student from other country, they may watch Instagram or twitter on the way to school
+## Which questions needed improvement to generate useful data
+  The most obvious one is the question that ask about the height and the shoes size. Students who took the survey will have different answer with different unit. For the question of height, some students will use centimeter, some will use meter, some will use feet. For the question of shoes size, some may use EU unit like 40, 42, some may use US or AUS unit like 8, 8.5, 7.5. In this case, this will occur bias in the data. So, the questioner should set the unit of these kind of questions. Furthermore, on the question "what you watch or listen on the way to school", there should be more options for international students. Like the students from China, they may watch TitTok, or the student from other country, they may watch Instagram or twitter on the way to school.
   
+# Specific hypothesis tests
   
+## load the packages
+
 ```{r}
-#install.packages("tidyverse")
-#install.packages("gt")
-#install.packages("pwr")
-#install.packages("visdat")
-#install.packages("janitor")
-#install.packages()
+library("tidyverse")
+library("gt")
+library("pwr")
+library("visdat")
+library("janitor")
+library("remotes")
+library("ggpubr")
+library("knitr")
+
 ```
 
 
 ```{r}
 library(tidyverse)
-x = readr::read_tsv("C:/Users/cyk03/Desktop/data2002/lab/DATA2002asm1/DATA2x02 survey (2022) - Form responses 1 (1).tsv")
+x = readr::read_tsv("C:/Users/cyk03/Desktop/data2002/lab/DATA2002asm1/DATA2x02 survey (2022) - Form responses 1 (1).tsv", col_names = TRUE, na = c("", "NA", "n/a"))
 ```
+
+```{r warning=FALSE}
+cleandat = remove_empty(x)
+
+cleandat = cleandat %>%
+  janitor::clean_names()
+
+cleandat
+
+```
+
 ```{r}
 old_names = colnames(x)
 ```
 
+## rename the colnmns
 ```{r}
 new_names = c("timestamp","covid_positive","living_arrangements","height","uni_travel_method","uni_travel_listen","spain_budget","feel_overseas","feel_anxious","study_hrs","read_news","study_load","work","lab_zoom","social_media","gender","sleep_time","wake_time","random_number","steak_preference","dominant_hand","normal_advanced","exercise_hrs","employment_hrs","city","weekly_saving","hourly_plan","weeks_behind","assignment_on_time","used_r_before","team_role","data2x02_hrs","social_media_hrs","uni_year","sport","wam","shoe_size","decade_selection")
 # overwrite the old names with the new names:
@@ -58,6 +76,14 @@ colnames(x) = new_names
 name_combo = bind_cols(New = new_names, Old = old_names)
 name_combo %>% gt::gt()
 ```
+
+
+```{r}
+
+
+```
+
+
 ```{r}
 visdat::vis_miss(x)
 ```
