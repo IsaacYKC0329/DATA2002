@@ -29,13 +29,13 @@ output:
   
   
 ## Which questions needed improvement to generate useful data
-  The most obvious one is the question that ask about the height and the shoes size. Students who took the survey will have different answer with different unit. For the question of height, some students will use centimeter, some will use meter, some will use feet. For the question of shoes size, some may use EU unit like 40, 42, some may use US or AUS unit like 8, 8.5, 7.5. In this case, this will occur bias in the data. So, the questioner should set the unit of these kind of questions. Furthermore, on the question "what you watch or listen on the way to school", there should be more options for international students. Like the students from China, they may watch TitTok, or the student from other country, they may watch Instagram or twitter on the way to school.
+  The most obvious one is the question that ask about the height and the shoes size. Students who took the survey will have different answer with different unit. For the question of height, some students will use centimeter, some will use meter, some will use feet. For the question of shoes size, some may use EU unit like 40, 42, some may use US or AUS unit like 8, 8.5, 7.5. In this case, this will occur bias in the data. So, the questioner should set the unit of these kind of questions. Furthermore, on the question "what you watch or listen on the way to school", there should be more options for international students. Like the students from China, they may watch TitTok, or the student from other country, they may watch Instagram or Twitter on the way to school.
   
 # Specific hypothesis tests
   
 ## load the packages
 
-```{r}
+```{r message=FALSE}
 library("tidyverse")
 library("gt")
 library("pwr")
@@ -49,7 +49,6 @@ library("knitr")
 
 
 ```{r}
-library(tidyverse)
 x = readr::read_tsv("C:/Users/cyk03/Desktop/data2002/lab/DATA2002asm1/DATA2x02 survey (2022) - Form responses 1 (1).tsv", col_names = TRUE, na = c("", "NA", "n/a"))
 ```
 
