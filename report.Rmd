@@ -12,12 +12,32 @@ output:
     number_sections: true # (Optional) Puts numbers next to heading/subheadings
 ---
 
+# Introduction
+
+### Is this a random sample of DATA2x02 students?
+
+  I consider this data is not a random sample of DATA2x02 students. The definition of random sample is "A simple random sample is a subset of a statistical population in which each member of the subset has an equal probability of being chosen. A simple random sample is meant to be an unbiased representation of a group.", base on the definition, the data is not a random sample. The data from survey was completed by the student from DATA2002 and DATA2902, and the survey was posted on ED, which will occur bias in the data because most of the student will not look through the post on ed, and they were not active on the live lecture, so they wouldn't know there was a survey that post on ED, so the survey was not completed by all the students who takes DATA2x02.As a result, this is not a random sample.
+  
+  
+### What are the potential biases? Which variables are most likely to be subjected to this bias?
+
+  The possible biased are: 
+  -   Non-response bias and sample bias, which trigger by those students who never attend the lecture and never check the post on ED; 
+  -   selection bias, this bias is because of those student who took the survey are tend to get a high score, which means they will attend every lecture and provide a high quality of every assignment, so there will be some influence to the answer of questions: "have you ever use R before DATA2x02". 
+  -   Measurement or design bias: the student who took the survey may have a thought that the survey will have some scores that correlate to the mark of this course, so they will answer some of the question in the way that base on the question and the way that they think what are the questioner expect. For example: "the role that work as part of a team","how much time do you spend on DATA2x02 every week"
+  -   Question order bias: the question in the order is messed up. Students will remember how they answer for each question, and they want to response all the questions in a consistent way. With a survey with no order, people who are taking the survey will get tired and they may quit the survey or answer the question that doesn't follow their heart.
+  
+  
+### Which questions needed improvement to generate useful data
+  The most obvious one is the question that ask about the height and the shoes size. Students who took the survey will have different answer with different unit. For the question of height, some students will use centimeter, some will use meter, some will use feet. For the question of shoes size, some may use EU unit like 40, 42, some may use US or AUS unit like 8, 8.5, 7.5. In this case, this will occur bias in the data. So, the questioner should set the unit of these kind of questions. Furthermore, on the question "what you watch or listen on the way to school", there should be more options for international students. Like the students from China, they may watch TitTok, or the student from other country, they may watch Instagram or twitter on the way to school
+  
+  
 ```{r}
-install.packages("tidyverse")
-install.packages("gt")
-install.packages("pwr")
-install.packages("visdat")
-install.packages("janitor")
+#install.packages("tidyverse")
+#install.packages("gt")
+#install.packages("pwr")
+#install.packages("visdat")
+#install.packages("janitor")
 #install.packages()
 ```
 
@@ -71,7 +91,7 @@ x %>% filter(height_clean > 200) %>% t()
 # Gender
 
 ```{r}
-install.packages("remotes")
+#install.packages("remotes")
 remotes::install_github("ropenscilabs/gendercoder")
 ```
 ```{r}
