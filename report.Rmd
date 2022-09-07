@@ -1,0 +1,182 @@
+---
+title: "DATA2002_Report"
+date: "`r Sys.Date()`"
+author: "500633434"
+output: 
+  html_document: 
+    self_contained: true # Creates a single HTML file as output
+    code_folding: hide # Code folding; allows you to show/hide code chunks
+    code_download: true # Includes a menu to download the code file
+    toc: true # (Optional) Creates a table of contents!
+    toc_float: true # table of contents at the side
+    number_sections: true # (Optional) Puts numbers next to heading/subheadings
+---
+
+# Introduction
+
+### Is this a random sample of DATA2x02 students?
+
+  I consider this data is not a random sample of DATA2x02 students. The definition of random sample is "A simple random sample is a subset of a statistical population in which each member of the subset has an equal probability of being chosen. A simple random sample is meant to be an unbiased representation of a group.", base on the definition, the data is not a random sample. The data from survey was completed by the student from DATA2002 and DATA2902, and the survey was posted on ED, which will occur bias in the data because most of the student will not look through the post on ed, and they were not active on the live lecture, so they wouldn't know there was a survey that post on ED, so the survey was not completed by all the students who takes DATA2x02.As a result, this is not a random sample.
+  
+  
+### What are the potential biases? Which variables are most likely to be subjected to this bias?
+
+  The possible biased are: 
+  -   Non-response bias and sample bias, which trigger by those students who never attend the lecture and never check the post on ED; 
+  -   selection bias, this bias is because of those student who took the survey are tend to get a high score, which means they will attend every lecture and provide a high quality of every assignment, so there will be some influence to the answer of questions: "have you ever use R before DATA2x02". 
+  -   Measurement or design bias: the student who took the survey may have a thought that the survey will have some scores that correlate to the mark of this course, so they will answer some of the question in the way that base on the question and the way that they think what are the questioner expect. For example: "the role that work as part of a team","how much time do you spend on DATA2x02 every week"
+  -   Question order bias: the question in the order is messed up. Students will remember how they answer for each question, and they want to response all the questions in a consistent way. With a survey with no order, people who are taking the survey will get tired and they may quit the survey or answer the question that doesn't follow their heart.
+  
+  
+### Which questions needed improvement to generate useful data
+  The most obvious one is the question that ask about the height and the shoes size. Students who took the survey will have different answer with different unit. For the question of height, some students will use centimeter, some will use meter, some will use feet. For the question of shoes size, some may use EU unit like 40, 42, some may use US or AUS unit like 8, 8.5, 7.5. In this case, this will occur bias in the data. So, the questioner should set the unit of these kind of questions. Furthermore, on the question "what you watch or listen on the way to school", there should be more options for international students. Like the students from China, they may watch TitTok, or the student from other country, they may watch Instagram or twitter on the way to school
+  
+  
+```{r}
+#install.packages("tidyverse")
+#install.packages("gt")
+#install.packages("pwr")
+#install.packages("visdat")
+#install.packages("janitor")
+#install.packages()
+```
+
+
+```{r}
+library(tidyverse)
+x = readr::read_tsv("C:/Users/cyk03/Desktop/data2002/lab/DATA2002asm1/DATA2x02 survey (2022) - Form responses 1 (1).tsv")
+```
+```{r}
+old_names = colnames(x)
+```
+
+```{r}
+new_names = c("timestamp","covid_positive","living_arrangements","height","uni_travel_method","uni_travel_listen","spain_budget","feel_overseas","feel_anxious","study_hrs","read_news","study_load","work","lab_zoom","social_media","gender","sleep_time","wake_time","random_number","steak_preference","dominant_hand","normal_advanced","exercise_hrs","employment_hrs","city","weekly_saving","hourly_plan","weeks_behind","assignment_on_time","used_r_before","team_role","data2x02_hrs","social_media_hrs","uni_year","sport","wam","shoe_size","decade_selection")
+# overwrite the old names with the new names:
+colnames(x) = new_names
+# combine old and new into a data frame:
+name_combo = bind_cols(New = new_names, Old = old_names)
+name_combo %>% gt::gt()
+```
+```{r}
+visdat::vis_miss(x)
+```
+```{r}
+unique(sort(x$height))
+```
+
+```{r}
+x = x %>% 
+  dplyr::mutate(
+    height_clean = readr::parse_number(height),
+    height_clean = case_when(
+      height_clean <= 2.5 ~ height_clean * 100,
+      height_clean <= 9 ~ NA_real_,
+      TRUE ~ height_clean
+    )
+  )
+```
+
+```{r}
+x %>% 
+  ggplot() + 
+  aes(x = height_clean) + 
+  geom_histogram(binwidth = 5)+ 
+  labs(x = "Count", y = "Height (cm)") + 
+  theme_bw()
+```
+```{r}
+x %>% filter(height_clean > 200) %>% t()
+```
+# Gender
+
+```{r}
+#install.packages("remotes")
+remotes::install_github("ropenscilabs/gendercoder")
+```
+```{r}
+x = x %>% mutate(
+  gender_clean = gendercoder::recode_gender(gender)
+)
+x %>% janitor::tabyl(
+  gender, gender_clean
+) %>% gt::gt() %>% 
+  gt::tab_spanner(label = "Recoded outcomes", columns = 2:5) %>% 
+  gt::cols_label(gender = "Original outcomes")
+```
+# Social Media
+```{r}
+x %>% janitor::tabyl(social_media) %>% 
+  gt::gt() %>% 
+  gt::fmt_percent(columns = 3:4, decimals = 1) %>% 
+  gt::cols_label(social_media = "Favourite social media platform")
+```
+
+```{r}
+x= x %>% mutate(
+  social_media_clean = tolower(social_media),
+  social_media_clean = str_replace_all(social_media_clean, '[[:punct:]]',' '),
+  social_media_clean = stringr::word(social_media_clean),
+  social_media_clean = case_when(
+    stringr::str_starts(social_media_clean,"ins") ~ "instagram",
+    stringr::str_starts(social_media_clean,"ti") ~ "tiktok",
+    stringr::str_starts(social_media_clean,"mess") ~ "facebook",
+    stringr::str_starts(social_media_clean,"n") ~ "none",
+    is.na(social_media_clean) ~ "none",
+    TRUE ~ social_media_clean
+  ),
+  social_media_clean = tools::toTitleCase(social_media_clean),
+  social_media_clean = forcats::fct_lump_min(social_media_clean, min = 10)
+)
+```
+
+```{r}
+x %>% janitor::tabyl(social_media_clean) %>% 
+  arrange(desc(n)) %>% 
+  gt::gt() %>% 
+  gt::fmt_percent(columns = 3, decimals = 1) %>% 
+  gt::cols_label(social_media_clean = "Favourite social media platform") %>% 
+  gt::cols_align(align = "left", columns = 1)
+```
+# Sport
+
+```{r}
+x = x %>% 
+  mutate(identifier = row_number()) %>% 
+  mutate(sport = replace_na(sport, "I Don't Play any Sport"))
+```
+
+```{r}
+sport <- x %>%
+  dplyr::select(identifier, sport) %>% 
+  tidyr::separate_rows(sport,
+                       sep = ", ") %>% 
+  dplyr::mutate(sport = tools::toTitleCase(sport),
+                sport = factor(sport),
+                sport = forcats::fct_lump_min(sport, 2))
+```
+
+```{r}
+sport %>% ggplot() + 
+  aes(y = reorder(sport, sport, function(x) length(x))) + 
+  geom_bar() + 
+  labs(y = "", x = "Count") + 
+  theme_bw()
+```
+```{r}
+sport_wide = sport %>% 
+  mutate(value = 1) %>% 
+  distinct() %>% 
+  pivot_wider(id_cols = identifier,
+              names_from = sport, 
+              values_from = value,
+              values_fill = 0)
+glimpse(sport_wide)
+```
+```{r}
+x = x %>%
+  left_join(sport_wide, by = "identifier") %>% 
+  janitor::clean_names()
+colnames(x)
+```
+
