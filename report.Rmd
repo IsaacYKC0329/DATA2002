@@ -14,12 +14,12 @@ output:
 
 # Introduction
 
-### Is this a random sample of DATA2x02 students?
+## Is this a random sample of DATA2x02 students?
 
   I consider this data is not a random sample of DATA2x02 students. The definition of random sample is "A simple random sample is a subset of a statistical population in which each member of the subset has an equal probability of being chosen. A simple random sample is meant to be an unbiased representation of a group.", base on the definition, the data is not a random sample. The data from survey was completed by the student from DATA2002 and DATA2902, and the survey was posted on ED, which will occur bias in the data because most of the student will not look through the post on ed, and they were not active on the live lecture, so they wouldn't know there was a survey that post on ED, so the survey was not completed by all the students who takes DATA2x02.As a result, this is not a random sample.
   
   
-### What are the potential biases? Which variables are most likely to be subjected to this bias?
+## What are the potential biases? Which variables are most likely to be subjected to this bias?
 
   The possible biased are: 
   -   Non-response bias and sample bias, which trigger by those students who never attend the lecture and never check the post on ED; 
@@ -28,155 +28,276 @@ output:
   -   Question order bias: the question in the order is messed up. Students will remember how they answer for each question, and they want to response all the questions in a consistent way. With a survey with no order, people who are taking the survey will get tired and they may quit the survey or answer the question that doesn't follow their heart.
   
   
-### Which questions needed improvement to generate useful data
-  The most obvious one is the question that ask about the height and the shoes size. Students who took the survey will have different answer with different unit. For the question of height, some students will use centimeter, some will use meter, some will use feet. For the question of shoes size, some may use EU unit like 40, 42, some may use US or AUS unit like 8, 8.5, 7.5. In this case, this will occur bias in the data. So, the questioner should set the unit of these kind of questions. Furthermore, on the question "what you watch or listen on the way to school", there should be more options for international students. Like the students from China, they may watch TitTok, or the student from other country, they may watch Instagram or twitter on the way to school
+## Which questions needed improvement to generate useful data
+  The most obvious one is the question that ask about the height and the shoes size. Students who took the survey will have different answer with different unit. For the question of height, some students will use centimeter, some will use meter, some will use feet. For the question of shoes size, some may use EU unit like 40, 42, some may use US or AUS unit like 8, 8.5, 7.5. In this case, this will occur bias in the data. So, the questioner should set the unit of these kind of questions. Furthermore, on the question "what you watch or listen on the way to school", there should be more options for international students. Like the students from China, they may watch TitTok, or the student from other country, they may watch Instagram or Twitter on the way to school.
   
+# Specific hypothesis tests
   
+## load the packages
+
+```{r message=FALSE}
+library("tidyverse")
+library("gt")
+library("pwr")
+library("visdat")
+library("janitor")
+library("remotes")
+library("ggpubr")
+library("knitr")
+library("ggplot2")
+
+```
+## data cleaning
+
 ```{r}
-#install.packages("tidyverse")
-#install.packages("gt")
-#install.packages("pwr")
-#install.packages("visdat")
-#install.packages("janitor")
-#install.packages()
+x = readr::read_tsv("C:/Users/cyk03/Desktop/data2002/lab/DATA2002asm1/DATA2x02 survey (2022) - Form responses 1 (1).tsv", col_names = TRUE, na = c("", "NA", "n/a"))
+```
+```{r warning=FALSE}
+
+cleandat = remove_empty(x)
+
+cleandat = cleandat %>%
+  janitor::clean_names()
+
+cleandat
+
 ```
 
-
 ```{r}
-library(tidyverse)
-x = readr::read_tsv("C:/Users/cyk03/Desktop/data2002/lab/DATA2002asm1/DATA2x02 survey (2022) - Form responses 1 (1).tsv")
-```
-```{r}
-old_names = colnames(x)
+old_names = colnames(cleandat)
 ```
 
+```{r}
+visdat::vis_miss(x)
+```
+
+## rename the colnmns
 ```{r}
 new_names = c("timestamp","covid_positive","living_arrangements","height","uni_travel_method","uni_travel_listen","spain_budget","feel_overseas","feel_anxious","study_hrs","read_news","study_load","work","lab_zoom","social_media","gender","sleep_time","wake_time","random_number","steak_preference","dominant_hand","normal_advanced","exercise_hrs","employment_hrs","city","weekly_saving","hourly_plan","weeks_behind","assignment_on_time","used_r_before","team_role","data2x02_hrs","social_media_hrs","uni_year","sport","wam","shoe_size","decade_selection")
 # overwrite the old names with the new names:
-colnames(x) = new_names
+colnames(cleandat) = new_names
 # combine old and new into a data frame:
 name_combo = bind_cols(New = new_names, Old = old_names)
 name_combo %>% gt::gt()
 ```
 ```{r}
-visdat::vis_miss(x)
-```
-```{r}
-unique(sort(x$height))
-```
-
-```{r}
-x = x %>% 
-  dplyr::mutate(
-    height_clean = readr::parse_number(height),
-    height_clean = case_when(
-      height_clean <= 2.5 ~ height_clean * 100,
-      height_clean <= 9 ~ NA_real_,
-      TRUE ~ height_clean
-    )
-  )
-```
-
-```{r}
-x %>% 
-  ggplot() + 
-  aes(x = height_clean) + 
-  geom_histogram(binwidth = 5)+ 
-  labs(x = "Count", y = "Height (cm)") + 
-  theme_bw()
-```
-```{r}
-x %>% filter(height_clean > 200) %>% t()
-```
-# Gender
-
-```{r}
-#install.packages("remotes")
-remotes::install_github("ropenscilabs/gendercoder")
-```
-```{r}
-x = x %>% mutate(
-  gender_clean = gendercoder::recode_gender(gender)
-)
-x %>% janitor::tabyl(
-  gender, gender_clean
-) %>% gt::gt() %>% 
-  gt::tab_spanner(label = "Recoded outcomes", columns = 2:5) %>% 
-  gt::cols_label(gender = "Original outcomes")
-```
-# Social Media
-```{r}
-x %>% janitor::tabyl(social_media) %>% 
-  gt::gt() %>% 
-  gt::fmt_percent(columns = 3:4, decimals = 1) %>% 
-  gt::cols_label(social_media = "Favourite social media platform")
+cleandat = cleandat %>% mutate(
+  gender = stringr::str_to_title(gender),
+  gender = recode(gender,
+                  `f` = "Female",
+                  `F` = "Female",
+                  `Femaile` = "Female",
+                  `Female` = "Female",
+                  `femaile` = "Female",
+                  `female` = "Female",
+                  `Woman` = "Female",
+                  `M` = "Male",
+                  `Male` = "Male",
+                  `male` = "Male"),
+  gender = forcats::fct_lump(gender, n = 2))
+table(cleandat$gender)
 ```
 
 ```{r}
-x= x %>% mutate(
-  social_media_clean = tolower(social_media),
-  social_media_clean = str_replace_all(social_media_clean, '[[:punct:]]',' '),
-  social_media_clean = stringr::word(social_media_clean),
-  social_media_clean = case_when(
-    stringr::str_starts(social_media_clean,"ins") ~ "instagram",
-    stringr::str_starts(social_media_clean,"ti") ~ "tiktok",
-    stringr::str_starts(social_media_clean,"mess") ~ "facebook",
-    stringr::str_starts(social_media_clean,"n") ~ "none",
-    is.na(social_media_clean) ~ "none",
-    TRUE ~ social_media_clean
-  ),
-  social_media_clean = tools::toTitleCase(social_media_clean),
-  social_media_clean = forcats::fct_lump_min(social_media_clean, min = 10)
-)
+table(cleandat$used_r_before)
+```
+## Is there correlation between gender and use_r_before
+There is a general phenomenon that most of the subject that relate to coding, are mostly chosen by male, there are nearly a female will choose a subject like that. Base on the survey, i want to find out that if this phenomenon is true or not
+
+### Hypothesis:
+$$ H0: \text{The vote for used_r_before are homogenous} $$
+$$ H1: \text{The vote for used_r_before are not homogenous} $$
+
+### Boxplot of Gender VS used_r_before
+```{r}
+cleandat = na.omit(cleandat)
+p1 = ggplot(cleandat,aes(x = used_r_before, fill = gender))
+p1 + geom_bar(position = "fill")
+```
+ 
+
+```{r}
+userTable = table(cleandat$gender, cleandat$used_r_before)
+userTable
+```
+
+
+### chi-suqare test 
+```{r}
+chisq.test(userTable, correct = TRUE)
+```
+
+
+
+$$ t0 = 0.2584 $$
+
+### p-value
+```{r}
+pval = pchisq(0.2584, 2, lower.tail = TRUE)
+pval
+```
+
+### Conclusion 
+The p-value is greater than 0.05, therefore we will accept the null hypothesis and make a conclusion that the usage of R before DATA2x02 are homogeneous between male and female.
+
+
+## Will gender be a factor that student who make hourly plan?
+Since the gender will have some impact on "did student used R before DATA2x02. In this question, I am going to use one sample t test to seek the answer of "will gender be a factor that make hourly plan"
+
+```{r}
+table(cleandat$gender, cleandat$hourly_plan)
+
+```
+
+### clean data, using drop_na function
+```{r}
+ghdat = cleandat %>%
+  drop_na(hourly_plan) %>%
+  drop_na(gender) %>%
+  mutate(hourly_plan) %>%
+  mutate(gender)
+```
+
+### clean hourly_plan data and change the column name and add the data together
+```{r}
+cleandat = cleandat %>% mutate(
+  hourly_plan = stringr::str_to_title(hourly_plan),
+  hourly_plan = recode(hourly_plan,
+                  `1-3 Days` = "yes", 
+                  `4-6 Days` = "yes",
+                  `Always` = "yes",
+                  `Never` = "No"),
+  hourly_plan = forcats::fct_lump(hourly_plan, n = 8))
+table(cleandat$hourly_plan)
+```
+
+### table of gender and hourly_plan
+
+```{r}
+ghtable = table(cleandat$gender, cleandat$hourly_plan)
+ghtable
 ```
 
 ```{r}
-x %>% janitor::tabyl(social_media_clean) %>% 
-  arrange(desc(n)) %>% 
-  gt::gt() %>% 
-  gt::fmt_percent(columns = 3, decimals = 1) %>% 
-  gt::cols_label(social_media_clean = "Favourite social media platform") %>% 
-  gt::cols_align(align = "left", columns = 1)
-```
-# Sport
-
-```{r}
-x = x %>% 
-  mutate(identifier = row_number()) %>% 
-  mutate(sport = replace_na(sport, "I Don't Play any Sport"))
+ghdata = ghdat[, c("hourly_plan", "gender")] %>% filter(gender %in% c("Female", "Male"))
 ```
 
+### plot of "gender vs hourly plan"
+
 ```{r}
-sport <- x %>%
-  dplyr::select(identifier, sport) %>% 
-  tidyr::separate_rows(sport,
-                       sep = ", ") %>% 
-  dplyr::mutate(sport = tools::toTitleCase(sport),
-                sport = factor(sport),
-                sport = forcats::fct_lump_min(sport, 2))
+cleandat %>%
+  ggplot() +
+  aes(x = hourly_plan, y = gender) +
+  geom_boxplot(coef = 10) +
+  geom_dotplot(stackdir = "center", binaxis = "y") +
+  labs(y = "gender", x = "hourly plan")
+```
+
+
+```{r}
+ggplot(ghdata, aes(x = gender, y = hourly_plan, fill = gender)) + geom_bar(stat = "identity", position = position_dodge())
+```
+```{r}
+p1 = ggplot(ghdata,aes(x = hourly_plan, fill = gender))
+p1 + geom_bar(position = "fill")
+```
+$$ H0: \mu = \mu_0  vs $$
+$$ H1 : \mu > \mu_0, \mu < \mu_0, \mu \neq \mu_0 $$
+
+
+### one sample t test
+```{r}
+tt = t.test(ghtable, var.equal = TRUE)
+tt
 ```
 
 ```{r}
-sport %>% ggplot() + 
-  aes(y = reorder(sport, sport, function(x) length(x))) + 
-  geom_bar() + 
-  labs(y = "", x = "Count") + 
-  theme_bw()
-```
-```{r}
-sport_wide = sport %>% 
-  mutate(value = 1) %>% 
-  distinct() %>% 
-  pivot_wider(id_cols = identifier,
-              names_from = sport, 
-              values_from = value,
-              values_fill = 0)
-glimpse(sport_wide)
-```
-```{r}
-x = x %>%
-  left_join(sport_wide, by = "identifier") %>% 
-  janitor::clean_names()
-colnames(x)
+tt$statistic
 ```
 
+
+### wilcoxon test
+```{r}
+wilcox.test(ghtable, alternative = "greater")
+```
+
+### Conclusion
+
+Both of the tests are showing that the p-value are lower than 5%, which is < 0.05, so we are rejecting the null hypothesis, and the conclusion of hourly plan vs gender is that there are no influence on make hourly plan that cause by gender.
+
+
+
+## Will student who make hourly plan has a highe WAM?
+Making hourly plan is a good habit for a student, it can assist them to finish their work in an efficient way, it may lead them to a higher WAM. However, some student may not have this kind of habit, but they also have a high WAM. I am going to test if there is a relation between WAM and making hourly plan.
+
+```{r}
+table(cleandat$hourly_plan, cleandat$wam)
+```
+
+
+### rename each wam in the dateset
+
+```{r}
+cleandat = cleandat %>% mutate(
+ wam = stringr::str_to_title(wam),
+  wam = recode(wam,
+                  `34` = "PS", 
+                  `50` = "PS",
+                  `55` = "PS",
+                  `60` = "PS",
+               `62` = "PS",
+               `65` = "CR",
+               `65.3` = "CR",
+               `66` = "CR",
+               `67` = "CR",
+               `68` = "CR",
+               `69` = "CR",
+               `70` = "CR",
+               `70.5` = "CR",
+               `70.67` = "CR",
+               `72` = "CR",
+               `73` = "CR", `73.4` = "CR", `74` = "CR", `75` = "DI", `76`= "DI", `77`= "DI", `77.33`= "DI", `78`= "DI", `78.3`= "DI", `78.5` = "DI",`79`= "DI", `79.7`= "DI", `79.8`= "DI", `80`= "DI", `81`= "DI", `82` = "DI",`82.8` = "DI",`83`= "DI", `83.2`= "DI", `84.3`= "HD", `84.6`= "HD", `85`= "HD", `87`= "HD", `87.2`= "HD", `89`= "HD", `89.1`= "HD", `90`= "HD", `90.06944444`= "HD", `90.55`= "HD", `91`= "HD", `91.2`= "HD", `92.2`= "HD", `99`= "HD",),
+  wam = forcats::fct_lump(wam, n =45))
+table(cleandat$wam)
+```
+
+```{r}
+table(cleandat$hourly_plan, cleandat$wam)
+```
+
+### plot of wam VS hourly plan
+
+```{r}
+boxplot(cleandat$hourly_plan ~ cleandat$wam, xlab = "wam", ylab = "hourly_plan")
+```
+
+
+
+
+```{r}
+cleandat = na.omit(cleandat)
+p1 = ggplot(cleandat,aes(x = hourly_plan, fill = wam))
+p1 + geom_bar(position = "fill")
+```
+
+$$ H0: \text{there is no relation between make hourly plan and wam} $$
+$$ H1: \text{there is  relation between make hourly plan and wam} $$
+
+```{r}
+ghtable = table(cleandat$wam, cleandat$hourly_plan)
+ghtable
+```
+
+```{r}
+wilcox.test(ghtable, alternative = "greater", correct = FALSE)
+```
+
+### Conclusion
+Since the p-value is less than 0.05, so we are not rejecting H0. The data is consistent with H0 that there is no relation between make hourly plan and WAM.
+
+
+# Conclusion
+After doing three relation test between gender, hourly plan, wam etc., I can conclude that gender may be a great factor that will affect most of the question in the survey.
+
+# References
+Garth Tarr. (2022, August 26). DATA2002 project: data importing and cleaning guide. Retrieved August 26, 2022, from https://pages.github.sydney.edu.au/DATA2002/2022/report/report_data.html
